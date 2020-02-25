@@ -1713,19 +1713,19 @@
     {
       "op": "null", 
       "name": "fc_weight", 
-      "attrs": {"num_hidden": "257"}, 
+      "attrs": {"num_hidden": "2"}, 
       "inputs": []
     }, 
     {
       "op": "null", 
       "name": "fc_bias", 
-      "attrs": {"num_hidden": "257"}, 
+      "attrs": {"num_hidden": "2"}, 
       "inputs": []
     }, 
     {
       "op": "FullyConnected", 
       "name": "fc", 
-      "attrs": {"num_hidden": "257"}, 
+      "attrs": {"num_hidden": "2"}, 
       "inputs": [[167, 0, 0], [168, 0, 0], [169, 0, 0]]
     }, 
     {
