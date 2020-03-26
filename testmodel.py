@@ -5,10 +5,11 @@ import numpy as np
 from mxnet.io import DataBatch
 import time
 import boto3
-from os import listdir,chdir
-from os.path import abspath,dirname,join
+from os import listdir,chdir,walk
+from os.path import abspath,dirname,join,basename
+import operator
 
-net = mx.mod.Module.load('./image-classification', 8)
+net = mx.mod.Module.load('./image-classification', 15)
 image_l = 256
 image_w = 256
 net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
@@ -36,7 +37,7 @@ def get_image(fname, show=False):
     return img
 
 
-def predict(url, labels):
+def predict(url):
     start_time = time.time()
 
     img = get_image(url, show=False)
@@ -44,24 +45,47 @@ def predict(url, labels):
     net.forward(DataBatch([mx.nd.array(img)]))
     # net.forward(list([mx.nd.array(img)]))
     prob = net.get_outputs()[0].asnumpy()
-
-    # print the top-5
+    # print the top-2
     prob = np.squeeze(prob)
-    a = np.argsort(prob)[::-1]
+    classes = np.argsort(prob)[::-1]
 
-    print("Total size of the features = %s" %(len(a)))
-    for i in a[0:5]:
-        print('probability=%f, label=%s' % (prob[i], labels[i]))
+    # print("Total size of the features = %s" %(len(classes)))
+    index, value = max(enumerate(prob), key=operator.itemgetter(1))
 
-    # print('probability of graffiti=%f, i=%s' % (prob[0], labels[0]))
-    # print('probability of non-graffiti=%f, i=%s' % (prob[1], labels[1]))
+    # for i in classes:
+        # print('probability=%f, label=%s' % (prob[i], labels[i]))
+
     end_time = time.time()
-    print("Total execution time: {} seconds".format(end_time - start_time))
+    # print("Total execution time: {} seconds".format(end_time - start_time))
+    return labels[index], value
 
 
-labels = ['graffiti', 'not_graffiti']
-chdir(join(dirname(dirname(abspath(__file__))),'sagemaker-graffiti-images','001.graffiti'))
-for file in listdir('.'):
-    predict(abspath(file),labels)
-
+g = 'graffiti'
+ng = 'notgraffiti'
+labels = [g, ng]
+true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
+_dict = {}
+# get files from directory ../sagemaker-graffiti-images/test/*
+test_dir = join(dirname(dirname(abspath(__file__))),'sagemaker-graffiti-images','test')
+for root, dirs, files in walk(test_dir):
+    actual_class = basename(root)
+    print("\n","folder: ",actual_class)
+    for file in files:
+        abs_path = join(root,file)
+        print("File: ",abs_path)
+        prediction, confidence = predict(abs_path)
+        if prediction == actual_class and actual_class == g:
+            true_pos +=1
+        elif prediction == actual_class and actual_class == ng:
+            true_neg +=1
+        elif prediction != actual_class and actual_class == g:
+            false_neg +=1
+        elif prediction != actual_class and actual_class == ng:
+            false_pos  +=1
+        _dict[abs_path] = [prediction == actual_class , prediction , confidence]
+precision = true_pos/(true_pos+false_pos)
+recall = true_pos/(true_pos+false_neg)
+f1_score = (2*precision*recall)/(precision+recall)
+print("\n","true_pos: " , true_neg , "false_pos: ", false_pos , "false_pos: ", false_pos , "false_neg: ", false_neg)
+print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"\n")
 print("EXIT PROGRAM")
