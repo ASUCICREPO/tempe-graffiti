@@ -14,3 +14,4 @@ tar xf model_25_Feb.tar.gz
 # from cic dir
 python .\rec\im2rec.py ./rec/tempe-graffiti-train .\sagemaker-graffiti-images\Train\ --recursive --list --num-thread 8
 python .\rec\im2rec.py ./rec/tempe-graffiti-train .\sagemaker-graffiti-images\Train\ --recursive --pass-through --pack-label --num-thread 8
+

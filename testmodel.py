@@ -64,28 +64,44 @@ g = 'graffiti'
 ng = 'notgraffiti'
 labels = [g, ng]
 true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
+# flags to check one sample of each category
+true_pos_flag , true_neg_flag , false_pos_flag , false_neg_flag  = False,False,False,False
 _dict = {}
-# get files from directory ../sagemaker-graffiti-images/test/*
-test_dir = join(dirname(dirname(abspath(__file__))),'sagemaker-graffiti-images','test')
+# get test files from directory ../sagemaker-graffiti-images/test/*
+test_dir = join(dirname(dirname(abspath(__file__))),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
+print("\ntestdir",test_dir)
 for root, dirs, files in walk(test_dir):
     actual_class = basename(root)
-    print("\n","folder: ",actual_class)
+    print("\nfolder: ",actual_class)
+    print("\nNumber of images: %s\n" %len(files))
     for file in files:
         abs_path = join(root,file)
-        print("File: ",abs_path)
+        # print("File: ",abs_path)
         prediction, confidence = predict(abs_path)
-        if prediction == actual_class and actual_class == g:
+        if prediction == actual_class and prediction == g:
             true_pos +=1
-        elif prediction == actual_class and actual_class == ng:
+            if not true_pos_flag:
+                true_pos_flag = True
+                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
+        elif prediction == actual_class and prediction == ng:
             true_neg +=1
-        elif prediction != actual_class and actual_class == g:
+            if not true_neg_flag:
+                true_neg_flag = True
+                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
+        elif prediction != actual_class and prediction == ng:
             false_neg +=1
-        elif prediction != actual_class and actual_class == ng:
+            if not false_neg_flag:
+                false_neg_flag = True
+                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
+        elif prediction != actual_class and prediction == g:
             false_pos  +=1
+            if not false_pos_flag:
+                false_pos_flag = True
+                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
         _dict[abs_path] = [prediction == actual_class , prediction , confidence]
 precision = true_pos/(true_pos+false_pos)
 recall = true_pos/(true_pos+false_neg)
 f1_score = (2*precision*recall)/(precision+recall)
-print("\n","true_pos: " , true_neg , "false_pos: ", false_pos , "false_pos: ", false_pos , "false_neg: ", false_neg)
+print("\n","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
 print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"\n")
 print("EXIT PROGRAM")
