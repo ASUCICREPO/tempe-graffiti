@@ -1,3 +1,6 @@
 .vscode/
 sagemaker-graffiti-images/*
 rec/*
+
+!sagemaker-graffiti-images/.gitkeep 
+!rec/.gitkeep 
