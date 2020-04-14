@@ -9,7 +9,8 @@ from os import listdir,chdir,walk
 from os.path import abspath,dirname,join,basename
 import operator
 
-net = mx.mod.Module.load('./image-classification', 15)
+# the digit denotes the epoch (starts with 0) which had best result on val set
+net = mx.mod.Module.load('./image-classification', 2)
 image_l = 256
 image_w = 256
 net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
@@ -68,7 +69,7 @@ true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
 true_pos_flag , true_neg_flag , false_pos_flag , false_neg_flag  = False,False,False,False
 _dict = {}
 # get test files from directory ../sagemaker-graffiti-images/test/*
-test_dir = join(dirname(dirname(abspath(__file__))),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
+test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
 print("\ntestdir",test_dir)
 for root, dirs, files in walk(test_dir):
     actual_class = basename(root)
@@ -78,25 +79,25 @@ for root, dirs, files in walk(test_dir):
         abs_path = join(root,file)
         # print("File: ",abs_path)
         prediction, confidence = predict(abs_path)
-        if prediction == actual_class and prediction == g:
+        if prediction == g and actual_class == g:
             true_pos +=1
             if not true_pos_flag:
                 true_pos_flag = True
                 print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction == actual_class and prediction == ng:
+        elif prediction == ng and actual_class == ng:
             true_neg +=1
             if not true_neg_flag:
                 true_neg_flag = True
                 print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction != actual_class and prediction == ng:
-            false_neg +=1
-            if not false_neg_flag:
-                false_neg_flag = True
-                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction != actual_class and prediction == g:
+        elif prediction == g and actual_class == ng:
             false_pos  +=1
             if not false_pos_flag:
                 false_pos_flag = True
+                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
+        elif prediction == ng and actual_class == g:
+            false_neg +=1
+            if not false_neg_flag:
+                false_neg_flag = True
                 print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
         _dict[abs_path] = [prediction == actual_class , prediction , confidence]
 precision = true_pos/(true_pos+false_pos)

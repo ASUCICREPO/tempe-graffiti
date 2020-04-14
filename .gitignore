@@ -1,1 +1,3 @@
 .vscode/
+sagemaker-graffiti-images/*
+rec/*
