@@ -62,7 +62,7 @@ def predict(url):
 
     # with open(("errors/classification_time.csv"),"a") as f:
     #     f.write(','.join([url, str(end_time - start_time),""]))
-    return labels[index], value,prob[0],prob[1],end_time
+    return labels[index], value,prob[0],prob[1],(end_time - start_time)
 
 
 g = 'graffiti'
@@ -95,19 +95,19 @@ for root, dirs, files in walk(test_dir):
             false_neg_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
         time_taken += tme 
 now = datetime.datetime.now()
-with open(("wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
+with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
     f.write("False Negatives,graffiti,notgraffiti")
     for line in false_neg_list:
-        f.write(f"{line}")
+        f.write(line)
     f.write("")
     f.write("False Positives,graffiti,notgraffiti")
     for line in false_pos_list:
-        f.write(f"{line}")
+        f.write(line)
 precision = true_pos/(true_pos+false_pos)
 recall = true_pos/(true_pos+false_neg)
 f1_score = (2*precision*recall)/(precision+recall)
 print("","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
 print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"")
-print("Avg Time_taken: ", time_taken/((true_pos)+(true_neg)+(false_neg)+(false_pos)))
+print("Avg Time_taken: ", time_taken/(true_pos+true_neg+false_neg+false_pos))
 
 print("EXIT PROGRAM")

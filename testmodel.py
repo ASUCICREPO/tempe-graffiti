@@ -10,14 +10,14 @@ from os.path import abspath,dirname,join,basename
 import operator
 import datetime
 import glob
-global net
+net = mx.mod.Module.load('./image-classification', 8)
 # the digit denotes the epoch (starts with 0) which had best result on val set
 def load_param(p):
+    global net
     net = mx.mod.Module.load('./image-classification', p)
     image_l = 224
     image_w = 224
     net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
-    return net
 
 def get_image(fname, show=False):
     # download and show the image
@@ -41,7 +41,8 @@ def get_image(fname, show=False):
     return img
 
 
-def predict(url,net):
+def predict(url):
+    # global net
     start_time = time.time()
 
     img = get_image(url, show=False)
@@ -64,15 +65,18 @@ def predict(url,net):
 
     # with open(("errors/classification_time.csv"),"a") as f:
     #     f.write(','.join([url, str(end_time - start_time),"\n"]))
-    return labels[index], value,prob[0],prob[1]
+    return labels[index], value,prob[0],prob[1],(end_time - start_time)
 
 
 g = 'graffiti'
 ng = 'notgraffiti'
 labels = [g, ng]
-param = glob.glob(".\image-classification*")
+param = glob.glob(".\image-classification*params")
 for p in param:
-    net = load_param(int(p.split('-')[2].split('.')[0]))
+    print(p)
+    paramfile = int(p.split('-')[2].split('.')[0])
+    print(paramfile)
+    load_param(paramfile)
     true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
     # flags to check one sample of each category
     # get test files from directory ../sagemaker-graffiti-images/test/*
@@ -80,13 +84,14 @@ for p in param:
     test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','split','test')
     # print("\ntestdir",test_dir)
     false_pos_list,false_neg_list = [],[]
+    time_taken = 0
     for root, dirs, files in walk(test_dir):
         actual_class = basename(root)
         # print("\nfolder: ",actual_class,"Number of images: %s\n" %len(files))
         for file in files:
             abs_path = join(root,file)
             # print("File: ",abs_path)
-            prediction, confidence, pg, png = predict(abs_path,net)
+            prediction, confidence, pg, png, tme = predict(abs_path)
             if prediction == g and actual_class == g:
                 true_pos +=1
             elif prediction == ng and actual_class == ng:
@@ -97,6 +102,8 @@ for p in param:
             elif prediction == ng and actual_class == g:
                 false_neg +=1
                 false_neg_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
+            time_taken += tme 
+
     now = datetime.datetime.now()
     with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
         f.write("False Negatives,graffiti,notgraffiti\n")
@@ -109,8 +116,8 @@ for p in param:
     precision = true_pos/(true_pos+false_pos)
     recall = true_pos/(true_pos+false_neg)
     f1_score = (2*precision*recall)/(precision+recall)
-    print("\n",p)
-    print("\n","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
+    print("true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
     print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"\n")
+    print("Avg Time_taken: ", time_taken/(true_pos+true_neg+false_neg+false_pos))
 
 print("\nEXIT PROGRAM")

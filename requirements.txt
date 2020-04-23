@@ -1,0 +1,5 @@
+mxnet
+matplotlib
+numpy
+boto3
+opencv-contrib-python
