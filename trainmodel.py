@@ -3,12 +3,15 @@ import shutil
 import random
 import subprocess
 import glob
+import boto3
+# import papermill as pm
+
 train_ratio = 0.8
-batch_size = 32
-max_batch = 300
+batch_size = 16
+max_batch = 600
 proj_dir = os.path.dirname(os.path.abspath(__file__))
 s3_dir = os.path.join(proj_dir,'sagemaker-graffiti-images')
-dataset_dir = os.path.join(s3_dir ,'classified')
+dataset_dir = os.path.join(s3_dir ,'resized')
 classes = os.listdir(dataset_dir)
 split_dir = os.path.join(s3_dir,'split')
 train_dir = os.path.join(split_dir, 'train')
@@ -35,13 +38,14 @@ def split_data():
 
         image_dir = os.path.join(dataset_dir, _class)
         # Only found jpg images in given set 
-        image_set = set(glob.glob(os.path.join(image_dir, "*.jpg")))
+        image_set = (glob.glob(os.path.join(image_dir, "*.jpg")))
         # print("\nImage Set",len(image_set))
-        train_set = set(random.sample(image_set, min(findNum(len(image_set),batch_size),max_batch*batch_size//2)))
+        train_set = set(image_set[:min(findNum(len(image_set),batch_size),max_batch*batch_size//2)])
+        # train_set = set(random.sample(image_set, min(findNum(len(image_set),batch_size),max_batch*batch_size//2)))
         # print(len(train_set))
         # train_set = random.sample(image_set, int(train_ratio*len(image_set)))
         # train_set = set(train_set[: ((len(train_set) - (len(train_set) % batch_size) )+1)])
-        remaining_set = image_set - train_set
+        remaining_set = set(image_set) - train_set
         validation_set = set(random.sample(remaining_set, int(findNum(0.5 * len(remaining_set),batch_size))))
         test_set = remaining_set - validation_set
 
@@ -80,7 +84,19 @@ def upload_rec_to_s3():
     print("\n\nExecute pwershell script to upload rec files")
     subprocess.run(["powershell.exe", "C:\\cic\\tempe-graffiti\\upload_rec.ps1"])
     print("\nExecuted pwershell script to upload rec files")
-        
+def invoke_training():
+    # pm.execute_notebook(
+    # 'lemmatize-input-data.ipynb',
+    # 'lemmatize-input-data-####.ipynb')
+    client = boto3.client('sagemaker')
+    response = client.start_notebook_instance(
+    NotebookInstanceName="trainingremoteinvoke"
+    )
+    print("\n\n\n")
+    print(response)
+def download_model():
+    pass
 split_data()
 create_rec_file()
 upload_rec_to_s3()
+# invoke_training()

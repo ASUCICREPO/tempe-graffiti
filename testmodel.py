@@ -8,13 +8,16 @@ import boto3
 from os import listdir,chdir,walk
 from os.path import abspath,dirname,join,basename
 import operator
-
+import datetime
+import glob
+global net
 # the digit denotes the epoch (starts with 0) which had best result on val set
-net = mx.mod.Module.load('./image-classification', 2)
-image_l = 256
-image_w = 256
-net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
-
+def load_param(p):
+    net = mx.mod.Module.load('./image-classification', p)
+    image_l = 224
+    image_w = 224
+    net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
+    return net
 
 def get_image(fname, show=False):
     # download and show the image
@@ -30,7 +33,7 @@ def get_image(fname, show=False):
         plot.axis('off')
         plot.show()
     # convert into format (batch, RGB, width, height)
-    img = cv2.resize(img, (256, 256))
+    img = cv2.resize(img, (180, 320))
     img = np.swapaxes(img, 0, 2)
     # cv2.imwrite('compressed.png', img)
     img = np.swapaxes(img, 1, 2)
@@ -38,7 +41,7 @@ def get_image(fname, show=False):
     return img
 
 
-def predict(url):
+def predict(url,net):
     start_time = time.time()
 
     img = get_image(url, show=False)
@@ -58,51 +61,56 @@ def predict(url):
 
     end_time = time.time()
     # print("Total execution time: {} seconds".format(end_time - start_time))
-    return labels[index], value
+
+    # with open(("errors/classification_time.csv"),"a") as f:
+    #     f.write(','.join([url, str(end_time - start_time),"\n"]))
+    return labels[index], value,prob[0],prob[1]
 
 
 g = 'graffiti'
 ng = 'notgraffiti'
 labels = [g, ng]
-true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
-# flags to check one sample of each category
-true_pos_flag , true_neg_flag , false_pos_flag , false_neg_flag  = False,False,False,False
-_dict = {}
-# get test files from directory ../sagemaker-graffiti-images/test/*
-test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
-print("\ntestdir",test_dir)
-for root, dirs, files in walk(test_dir):
-    actual_class = basename(root)
-    print("\nfolder: ",actual_class)
-    print("\nNumber of images: %s\n" %len(files))
-    for file in files:
-        abs_path = join(root,file)
-        # print("File: ",abs_path)
-        prediction, confidence = predict(abs_path)
-        if prediction == g and actual_class == g:
-            true_pos +=1
-            if not true_pos_flag:
-                true_pos_flag = True
-                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction == ng and actual_class == ng:
-            true_neg +=1
-            if not true_neg_flag:
-                true_neg_flag = True
-                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction == g and actual_class == ng:
-            false_pos  +=1
-            if not false_pos_flag:
-                false_pos_flag = True
-                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        elif prediction == ng and actual_class == g:
-            false_neg +=1
-            if not false_neg_flag:
-                false_neg_flag = True
-                print(abs_path, "   Actual: ", actual_class, "   Prediction: ", prediction, "   Confidence", confidence)
-        _dict[abs_path] = [prediction == actual_class , prediction , confidence]
-precision = true_pos/(true_pos+false_pos)
-recall = true_pos/(true_pos+false_neg)
-f1_score = (2*precision*recall)/(precision+recall)
-print("\n","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
-print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"\n")
-print("EXIT PROGRAM")
+param = glob.glob(".\image-classification*")
+for p in param:
+    net = load_param(int(p.split('-')[2].split('.')[0]))
+    true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
+    # flags to check one sample of each category
+    # get test files from directory ../sagemaker-graffiti-images/test/*
+    # test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
+    test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','split','test')
+    # print("\ntestdir",test_dir)
+    false_pos_list,false_neg_list = [],[]
+    for root, dirs, files in walk(test_dir):
+        actual_class = basename(root)
+        # print("\nfolder: ",actual_class,"Number of images: %s\n" %len(files))
+        for file in files:
+            abs_path = join(root,file)
+            # print("File: ",abs_path)
+            prediction, confidence, pg, png = predict(abs_path,net)
+            if prediction == g and actual_class == g:
+                true_pos +=1
+            elif prediction == ng and actual_class == ng:
+                true_neg +=1
+            elif prediction == g and actual_class == ng:
+                false_pos  +=1
+                false_pos_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
+            elif prediction == ng and actual_class == g:
+                false_neg +=1
+                false_neg_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
+    now = datetime.datetime.now()
+    with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
+        f.write("False Negatives,graffiti,notgraffiti\n")
+        for line in false_neg_list:
+            f.write(f"{line}\n")
+        f.write("\n")
+        f.write("False Positives,graffiti,notgraffiti\n")
+        for line in false_pos_list:
+            f.write(f"{line}\n")
+    precision = true_pos/(true_pos+false_pos)
+    recall = true_pos/(true_pos+false_neg)
+    f1_score = (2*precision*recall)/(precision+recall)
+    print("\n",p)
+    print("\n","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
+    print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"\n")
+
+print("\nEXIT PROGRAM")
