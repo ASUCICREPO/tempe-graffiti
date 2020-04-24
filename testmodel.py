@@ -10,7 +10,7 @@ from os.path import abspath,dirname,join,basename
 import operator
 import datetime
 import glob
-net = mx.mod.Module.load('./image-classification', 19)
+net = None
 # the digit denotes the epoch (starts with 0) which had best result on val set
 def load_param(path,param):
     global net

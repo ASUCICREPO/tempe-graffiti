@@ -27,8 +27,9 @@ echo "Uploaded 2"
 echo 'download logs'
 aws s3 cp --recursive --only-show-errors s3://sagemaker-graffiti-images/logs/ ./sagemaker-graffiti-images/logs/
 
-#aws s3 rm --only-show-errors s3://sagemaker-graffiti-images/image-classification-transfer-learning/test/  --recursive --include '*'
-#aws s3 cp .\split\test s3://sagemaker-graffiti-images/image-classification-transfer-learning/test --recursive
+echo 'clean and re-upload split test directory'
+aws s3 rm --only-show-errors s3://sagemaker-graffiti-images/image-classification-transfer-learning/test/  --recursive --include '*'
+aws s3 cp --only-show-errors .\sagemaker-graffiti-images\split\test s3://sagemaker-graffiti-images/image-classification-transfer-learning/test --recursive
 #read-host "press enter to exit"
 
 #shutdown /h
