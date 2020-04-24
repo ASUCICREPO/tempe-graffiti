@@ -1,0 +1,63 @@
+13 ./model\model-4-14\image-classification-0013.params
+true_pos:  978 true_neg:  1774 false_pos:  253 false_neg:  536
+precision:  0.7944760357432982  recall:  0.6459709379128138  f1_score:  0.712568306010929
+
+Avg Time_taken:  0.1780777730971398
+[06:22:31] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[06:22:31] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+20 ./model\model-4-14-2\image-classification-0020.params
+true_pos:  1359 true_neg:  1396 false_pos:  631 false_neg:  155
+precision:  0.6829145728643216  recall:  0.8976221928665786  f1_score:  0.7756849315068493
+
+Avg Time_taken:  0.17102275962581812
+[06:32:37] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[06:32:37] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+5 ./model\model-4-14-3\image-classification-0005.params
+true_pos:  1144 true_neg:  1731 false_pos:  296 false_neg:  370
+precision:  0.7944444444444444  recall:  0.7556142668428005  f1_score:  0.7745429925524712
+
+Avg Time_taken:  0.17502377895741972
+[06:42:57] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[06:42:57] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+14 ./model\model-4-21\image-classification-0014.params
+true_pos:  1263 true_neg:  1786 false_pos:  241 false_neg:  251
+precision:  0.8397606382978723  recall:  0.834214002642008  f1_score:  0.8369781312127237
+
+Avg Time_taken:  0.17330242226737194
+[06:53:11] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[06:53:11] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+8 ./model\model-4-21 - 2\image-classification-0008.params
+true_pos:  1001 true_neg:  1834 false_pos:  193 false_neg:  513
+precision:  0.838358458961474  recall:  0.6611624834874504  f1_score:  0.739290989660266
+
+Avg Time_taken:  0.1706726860777869
+[07:03:16] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[07:03:16] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+15 ./model\model-4-21 - 3\image-classification-0015.params
+true_pos:  1244 true_neg:  1843 false_pos:  184 false_neg:  270
+precision:  0.8711484593837535  recall:  0.821664464993395  f1_score:  0.8456832087015635
+
+Avg Time_taken:  0.1774123902039419
+[07:13:44] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[07:13:44] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+20 ./model\model-4-21 - 4\image-classification-0020.params
+true_pos:  1275 true_neg:  1794 false_pos:  233 false_neg:  239
+precision:  0.8454907161803713  recall:  0.8421400264200792  f1_score:  0.8438120450033091
+
+Avg Time_taken:  0.1790534746374191
+[07:24:18] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:209: Loading symbol saved by previous version v1.3.0. Attempting to upgrade...
+[07:24:18] C:\Jenkins\workspace\mxnet-tag\mxnet\src\nnvm\legacy_json_util.cc:217: Symbol successfully upgraded!
+
+19 ./model\model-4-21 - 5\image-classification-0019.params
+true_pos:  1160 true_neg:  1875 false_pos:  152 false_neg:  354
+precision:  0.8841463414634146  recall:  0.7661822985468957  f1_score:  0.8209483368719037
+
+Avg Time_taken:  0.1727151363726155
+
+EXIT PROGRAM

@@ -10,14 +10,16 @@ from os.path import abspath,dirname,join,basename
 import operator
 import datetime
 import glob
-net = mx.mod.Module.load('./image-classification', 8)
+net = mx.mod.Module.load('./image-classification', 19)
 # the digit denotes the epoch (starts with 0) which had best result on val set
-def load_param(p):
+def load_param(path,param):
     global net
-    net = mx.mod.Module.load('./image-classification', p)
+    net = mx.mod.Module.load(path, param,label_names=None)
+    # net.label_names = None
     image_l = 224
     image_w = 224
     net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
+    # print(net)
 
 def get_image(fname, show=False):
     # download and show the image
@@ -33,7 +35,7 @@ def get_image(fname, show=False):
         plot.axis('off')
         plot.show()
     # convert into format (batch, RGB, width, height)
-    img = cv2.resize(img, (180, 320))
+    img = cv2.resize(img, (224, 224))
     img = np.swapaxes(img, 0, 2)
     # cv2.imwrite('compressed.png', img)
     img = np.swapaxes(img, 1, 2)
@@ -71,12 +73,12 @@ def predict(url):
 g = 'graffiti'
 ng = 'notgraffiti'
 labels = [g, ng]
-param = glob.glob(".\image-classification*params")
+param = glob.glob("./model/*/image-classification*params",recursive=True)
 for p in param:
-    print(p)
-    paramfile = int(p.split('-')[2].split('.')[0])
-    print(paramfile)
-    load_param(paramfile)
+    paramno = int((p.split('-')[-1]).split('.')[0])
+    load_param(('-').join(p.split('-')[:-1]),paramno)
+    print()
+    print(paramno, p)
     true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
     # flags to check one sample of each category
     # get test files from directory ../sagemaker-graffiti-images/test/*
@@ -108,11 +110,11 @@ for p in param:
     with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
         f.write("False Negatives,graffiti,notgraffiti\n")
         for line in false_neg_list:
-            f.write(f"{line}\n")
+            f.write(line)
         f.write("\n")
         f.write("False Positives,graffiti,notgraffiti\n")
         for line in false_pos_list:
-            f.write(f"{line}\n")
+            f.write(line)
     precision = true_pos/(true_pos+false_pos)
     recall = true_pos/(true_pos+false_neg)
     f1_score = (2*precision*recall)/(precision+recall)

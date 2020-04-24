@@ -30,7 +30,7 @@ def get_image(fname, show=False):
         plot.axis('off')
         plot.show()
     # convert into format (batch, RGB, width, height)
-    img = cv2.resize(img, (180, 320))
+    img = cv2.resize(img, (224, 224))
     img = np.swapaxes(img, 0, 2)
     # cv2.imwrite('compressed.png', img)
     img = np.swapaxes(img, 1, 2)
