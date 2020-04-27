@@ -11,7 +11,7 @@ import operator
 import datetime
 import glob
 # the digit denotes the epoch (starts with 0) which had best result on val set
-net = mx.mod.Module.load('./image-classification', 19)
+net = mx.mod.Module.load('./image-classification', 17)
 image_l = 224
 image_w = 224
 net.bind(for_training=False, data_shapes=[('data', (1, 3, image_l, image_w))], label_shapes=net._label_shapes)
