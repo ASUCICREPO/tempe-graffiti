@@ -40,11 +40,9 @@ def split_data():
         # Only found jpg images in given set 
         image_set = (glob.glob(os.path.join(image_dir, "*.jpg")))
         # print("\nImage Set",len(image_set))
-        train_set = set(image_set[:min(findNum(len(image_set),batch_size),max_batch*batch_size//2)])
-        # train_set = set(random.sample(image_set, min(findNum(len(image_set),batch_size),max_batch*batch_size//2)))
-        # print(len(train_set))
+        # train_set = set(image_set[:min(findNum(len(image_set),batch_size),max_batch*batch_size//2)])
+        train_set = set(image_set[:int(findNum(train_ratio*len(image_set),batch_size))])
         # train_set = random.sample(image_set, int(train_ratio*len(image_set)))
-        # train_set = set(train_set[: ((len(train_set) - (len(train_set) % batch_size) )+1)])
         remaining_set = set(image_set) - train_set
         validation_set = set(random.sample(remaining_set, int(findNum(0.5 * len(remaining_set),batch_size))))
         test_set = remaining_set - validation_set
