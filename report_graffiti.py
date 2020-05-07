@@ -12,7 +12,7 @@ s3_client = boto3.client('s3')
 bucket = "report-graffiti"
 datetoday = datetime.date.today()
 obj_path = datetoday.strftime('%Y/%m/%d/')
-graffiti_dir = os.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' 
+graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' 
 
 # RabbitMQ Host
 credentials = pika.PlainCredentials('admin', '05rX20@qmR!',erase_on_connect=True)
