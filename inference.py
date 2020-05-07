@@ -6,6 +6,7 @@ from os import listdir,chdir,remove
 from os.path import abspath,dirname,join,basename,expanduser
 from operator import itemgetter
 from shutil import move
+import time
 # the digit denotes the epoch (starts with 0) which had best result on val set
 net = mx.mod.Module.load('./image-classification', 17)
 image_l = 224
@@ -22,8 +23,6 @@ def get_image(fname, show=False):
     img = np.swapaxes(img, 1, 2)
     img = img[np.newaxis, :]
     return img
-
-
 def predict(url):
     # global net
     img = get_image(url, show=False)
@@ -39,22 +38,28 @@ def predict(url):
 g = 'graffiti'
 ng = 'notgraffiti'
 labels = [g, ng]
-images_dir = expanduser("~/captured") # join(dirname(abspath(__file__)),'sagemaker-graffiti-images','split','test')
-graffiti_dir = expanduser("~/graffiti")
+images_dir = expanduser("~/captured") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//classified_copy//graffiti' 
+graffiti_dir = expanduser("~/graffiti") #'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' 
 time_taken = 0
-while True:
-    images = listdir(images_dir)
-    for image in images:
-        abs_path = join(images_dir,image)
-        prediction = predict(abs_path)
-        if prediction is g:
-            try:
-                move(image, graffiti_dir)
-            except:
-                print("could not move image to graffiti dir",image)
+try:
+    while True:
+        images = listdir(images_dir)
+        if images:
+            for image in images:
+                abs_path = join(images_dir,image)
+                prediction = predict(abs_path)
+                if prediction is g:
+                    try:
+                        move(abs_path, graffiti_dir)
+                    except Exception as err:
+                        print(err, "\ncould not move image to graffiti dir",image)
+                else:
+                    try:
+                        # move(abs_path, images_dir)
+                        remove(abs_path)
+                    except Exception as err:
+                        print(err,"\ncould not remove image from captured dir",image)
         else:
-            try:
-                remove(image)
-            except:
-                print("could not remove image from captured dir",image)
-print("EXIT PROGRAM")
+            time.sleep(10)
+except KeyboardInterrupt:
+    print("EXIT PROGRAM")
