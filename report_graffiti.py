@@ -13,7 +13,7 @@ bucket = "report-graffiti"
 
 datetoday = datetime.date.today()
 obj_path = datetoday.strftime('%Y/%m/%d/')
-graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' #
+graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' # 
 
 # RabbitMQ Host
 credentials = pika.PlainCredentials('admin', '05rX20@qmR!',erase_on_connect=True)
@@ -47,6 +47,10 @@ def make_connection():
     return ch
 
 connected = False
+
+def get_geolocation():
+    return "33.4255104","-111.9400054" # replace with geolocation logic
+
 while True:
     if not connected:
         channel = make_connection()
@@ -60,8 +64,9 @@ while True:
                 resp = upload_graffiti(filename, key)
                 if resp:
                     image_s3_url = ("https://{0}.s3.amazonaws.com/{1}".format(bucket,key)).replace(' ','+')
+                    lon,lat = get_geolocation()
                     payload = { "image": image_s3_url,
-                                "geolocation": "33.4255104, -111.9400054" #sample
+                                "geolocation": ','.join([lon,lat]) 
                                 }
                     try:
                         channel.basic_publish (exchange='graffiti-exc', routing_key='graffiti', body=json.dumps(payload),
