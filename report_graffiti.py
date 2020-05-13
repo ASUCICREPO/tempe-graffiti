@@ -12,8 +12,11 @@ s3_client = boto3.client('s3')
 bucket = "report-graffiti"
 
 datetoday = datetime.date.today()
-obj_path = datetoday.strftime('%Y/%m/%d/')
+fmt_date = datetoday.strftime('%Y/%m/%d')
 graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' # 
+
+logfile = 'logs/rabbit-{}.log'.format(fmt_date.replace('/','-'))
+logging.basicConfig(filename=logfile,level=logging.INFO)
 
 # RabbitMQ Host
 credentials = pika.PlainCredentials('admin', '05rX20@qmR!',erase_on_connect=True)
@@ -33,7 +36,7 @@ def upload_graffiti(filename, key):
         response = s3_client.upload_file(filename, bucket, key, ExtraArgs={'ACL':'public-read', 'ContentType':'image/jpeg'})
         # bucket.upload_file(filename, key, ExtraArgs={'ACL':'public-read'})
     except ClientError as e:
-        logging.error(e)
+        logging.error("Upload object error"+str(e))
         return False
     return True
 def make_connection():
@@ -53,13 +56,16 @@ def get_geolocation():
 
 while True:
     if not connected:
-        channel = make_connection()
-        connected = True
+        try:
+            channel = make_connection()
+            connected = True
+        except pika.exceptions.AMQPConnectionError as connerr:
+            logging.info("Cannot establish connection"+str(connerr))
     try:
         images = os.listdir(graffiti_dir)
         if images:
             for image in images:
-                key = obj_path+image
+                key = fmt_date+'/'+image
                 filename = os.path.join(graffiti_dir, image)
                 resp = upload_graffiti(filename, key)
                 if resp:
@@ -74,18 +80,18 @@ while True:
                         try:
                             os.remove(filename)
                         except Exception as err:
-                            logging.error(err,"\ncould not remove image from captured dir: ",image)
+                            logging.error(err)
+                            logging.error("Could not remove image from captured dir: "+str(filename))
                     # Recover on all connection errors
                     except:
                         connected = False
                         continue
                     # print(image_s3_url)
-                    
         else:
             time.sleep(10)
             try:
-                logging.info("Message Count ",channel.queue_declare(queue="graffiti-queue", durable=True).method.message_count)
-            except pika.exceptions.UnroutableError as e:
+                logging.info('Message Count '+str(channel.queue_declare(queue="graffiti-queue", durable=True).method.message_count))
+            except Exception as e:
                 connected = False
                 continue
     except Exception as e:
