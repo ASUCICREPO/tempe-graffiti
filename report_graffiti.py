@@ -5,6 +5,8 @@ import datetime
 import time
 import logging
 import json
+import base64
+
 from botocore.exceptions import ClientError
 
 s3_client = boto3.client('s3')
@@ -18,15 +20,53 @@ graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sage
 logfile = 'logs/rabbit-{}.log'.format(fmt_date.replace('/','-'))
 logging.basicConfig(filename=logfile,level=logging.INFO)
 
-# RabbitMQ Host
-credentials = pika.PlainCredentials('admin', '05rX20@qmR!',erase_on_connect=True)
-parameters = pika.ConnectionParameters( host='52.3.176.47', # aws elastic ip for ec2 instance hosting rabbitmq
-                                       port=5672,
-                                       virtual_host='/host1',
-                                       socket_timeout=2,
-                                       credentials=credentials,
-                                       heartbeat=600,
-                                       blocked_connection_timeout=300)
+
+
+def get_rabbitmq_creds():
+
+    secret_name = "rabbitmq_credentials"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'DecryptionFailureException':
+            # Secrets Manager can't decrypt the protected secret text using the provided KMS key.
+            # Deal with the exception here, and/or rethrow at your discretion.
+            raise e
+        elif e.response['Error']['Code'] == 'InternalServiceErrorException':
+            # An error occurred on the server side.
+            # Deal with the exception here, and/or rethrow at your discretion.
+            raise e
+        elif e.response['Error']['Code'] == 'InvalidParameterException':
+            # You provided an invalid value for a parameter.
+            # Deal with the exception here, and/or rethrow at your discretion.
+            raise e
+        elif e.response['Error']['Code'] == 'InvalidRequestException':
+            # You provided a parameter value that is not valid for the current state of the resource.
+            # Deal with the exception here, and/or rethrow at your discretion.
+            raise e
+        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
+            # We can't find the resource that you asked for.
+            # Deal with the exception here, and/or rethrow at your discretion.
+            raise e
+    else:
+        # Decrypts secret using the associated KMS CMK.
+        # Depending on whether the secret is a string or binary, one of these fields will be populated.
+        if 'SecretString' in get_secret_value_response:
+            secret = get_secret_value_response['SecretString']
+            return secret
+        else:
+            decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
+            return decoded_binary_secret
 
 def upload_graffiti(filename, key):
     try:
@@ -40,6 +80,19 @@ def upload_graffiti(filename, key):
         return False
     return True
 def make_connection():
+# RabbitMQ Host
+    credentials = json.loads(get_rabbitmq_creds())
+    (user,pswd), = credentials.items()
+    credentials = pika.PlainCredentials(user, pswd, erase_on_connect=True)
+    parameters = pika.ConnectionParameters( host='52.3.176.47', # aws elastic ip for ec2 instance hosting rabbitmq
+                                       port=5672,
+                                       virtual_host='/host1',
+                                       socket_timeout=2,
+                                       credentials=credentials,
+                                       heartbeat=600,
+                                       blocked_connection_timeout=300)
+
+
     connection = pika.BlockingConnection(parameters)
     # Create a new channel with the next available channel number or pass in a channel number to use
     ch = connection.channel()
