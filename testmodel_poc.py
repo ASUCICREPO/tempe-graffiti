@@ -10,6 +10,7 @@ from os.path import abspath,dirname,join,basename
 import operator
 import datetime
 import glob
+
 # the digit denotes the epoch (starts with 0) which had best result on val set
 net = mx.mod.Module.load('./image-classification', 17)
 image_l = 224
@@ -72,42 +73,69 @@ true_pos , true_neg , false_pos , false_neg  = 0,0,0,0
 # flags to check one sample of each category
 # get test files from directory ../sagemaker-graffiti-images/test/*
 # test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','image-classification-transfer-learning','test')
-test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','split','test')
-# print("testdir",test_dir)
-false_pos_list,false_neg_list = [],[]
-time_taken = 0
-for root, dirs, files in walk(test_dir):
-    actual_class = basename(root)
-    # print("folder: ",actual_class,"Number of images: %s" %len(files))
-    for file in files:
-        abs_path = join(root,file)
-        # print("File: ",abs_path)
-        prediction, confidence, pg, png, tme = predict(abs_path)
-        if prediction == g and actual_class == g:
-            true_pos +=1
-        elif prediction == ng and actual_class == ng:
-            true_neg +=1
-        elif prediction == g and actual_class == ng:
-            false_pos  +=1
-            false_pos_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
-        elif prediction == ng and actual_class == g:
-            false_neg +=1
-            false_neg_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
-        time_taken += tme 
-now = datetime.datetime.now()
-with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
-    f.write("False Negatives,graffiti,notgraffiti")
-    for line in false_neg_list:
-        f.write(line)
-    f.write("")
-    f.write("False Positives,graffiti,notgraffiti")
-    for line in false_pos_list:
-        f.write(line)
-precision = true_pos/(true_pos+false_pos)
-recall = true_pos/(true_pos+false_neg)
-f1_score = (2*precision*recall)/(precision+recall)
-print("","true_pos: " , true_pos , "true_neg: ", true_neg , "false_pos: ", false_pos , "false_neg: ", false_neg)
-print("precision: ",precision," recall: ", recall," f1_score: ", f1_score,"")
-print("Avg Time_taken: ", time_taken/(true_pos+true_neg+false_neg+false_pos))
+
+print("Welcome to Graffiti Image Classification")
+print("1-View the Model's Precision ")
+print("2-Image Prediction")
+val=input("Press 1 or 2 \n")
+
+while True:
+    if val=="1":
+        test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','split','test')
+        false_pos_list,false_neg_list = [],[]
+        time_taken = 0
+        for root, dirs, files in walk(test_dir):
+            actual_class = basename(root)
+            # print("folder: ",actual_class,"Number of images: %s" %len(files))
+            for file in files:
+                abs_path = join(root,file)
+                prediction, confidence, pg, png, tme = predict(abs_path)
+                if prediction == g and actual_class == g:
+                    true_pos +=1
+                elif prediction == ng and actual_class == ng:
+                    true_neg +=1
+                elif prediction == g and actual_class == ng:
+                    false_pos  +=1
+                    false_pos_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
+                elif prediction == ng and actual_class == g:
+                    false_neg +=1
+                    false_neg_list.append(','.join([abs_path,str(int(pg*100)),str(int(png*100))]))
+                time_taken += tme 
+        now = datetime.datetime.now()
+        with open(("errors/wrong_classification_"+str(now.month)+"_"+str(now.day)+"_"+str(now.hour)+"_"+str(now.minute)+".csv"),"w+") as f:
+            f.write("False Negatives,graffiti,notgraffiti")
+            for line in false_neg_list:
+                f.write(line)
+            f.write("")
+            f.write("False Positives,graffiti,notgraffiti")
+            for line in false_pos_list:
+                f.write(line)
+        precision = (true_pos/(true_pos+false_pos))*100
+        recall = (true_pos/(true_pos+false_neg))*100
+        f1_score = (2*precision*recall)/(precision+recall)
+        print("","true_pos: " , true_pos , "\ntrue_neg: ", true_neg , "\nfalse_pos: ", false_pos , "\nfalse_neg: ", false_neg)
+        print("\nprecision: ",precision,"\nrecall: ", recall)
+        print("\nAvg Time_taken:", time_taken/(true_pos+true_neg+false_neg+false_pos),"\n")
+    if(val=="2"):
+        test_dir = join(dirname(abspath(__file__)),'sagemaker-graffiti-images','google','testing')
+        false_pos_list,false_neg_list = [],[]
+        time_taken = 0
+        for root, dirs, files in walk(test_dir):
+            actual_class = basename(root)
+            # print("folder: ",actual_class,"Number of images: %s" %len(files))
+            for file in files:
+                abs_path = join(root,file)
+                print("--------------------------------------------------")
+                print("File: ",abs_path)
+                prediction, confidence, pg, png, tme = predict(abs_path)
+                print("Prediction: ",prediction)
+        print("")
+    print("1-View the Model's Precision ")
+    print("2-Image Prediction")
+    val=input("Press 1 or 2 \n")
+
+
+
+
 
 print("EXIT PROGRAM")
