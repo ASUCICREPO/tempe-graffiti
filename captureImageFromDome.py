@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import time
+from datetime import datetime
 
 capture = cv2.VideoCapture('rtsp://root:asucic2020@192.168.0.16:554/live.sdp')
 img_counter=0
@@ -13,7 +14,7 @@ while True:
     ret, frame = capture.read()
     if time_elapsed > 1./frame_rate:
         prev = time.time()
-        img_name = "opencv_frame_{}.png".format(img_counter)
+        img_name = "opencv_frame_"+datetime.now().strftime("%d_%b_%Y_%H_%M_%S.%f)")+"{}.png".format(img_counter)
         cv2.imwrite(os.path.join(graffiti_dir ,img_name), frame)
         print("{} written!".format(img_name))
         img_counter += 1
