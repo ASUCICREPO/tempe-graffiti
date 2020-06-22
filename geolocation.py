@@ -4,7 +4,7 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 from bs4 import BeautifulSoup
 
-browser = webdriver.Chrome(executable_path=r"C:\Users\sramamo3\Projects\tempe-graffiti\chromedriver.exe")
+browser = webdriver.Chrome(executable_path=r"C:\Users\cic\Projects\tempe-graffiti\chromedriver.exe")
 browser.get('http://192.168.1.1/gps/') 
 sleep(3)
 password = browser.find_element_by_name("inputPassword")

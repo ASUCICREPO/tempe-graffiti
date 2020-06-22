@@ -3,10 +3,19 @@ import numpy as np
 import os
 import time
 from datetime import datetime
+import mxnet as mx
+import matplotlib.pyplot as plot
+import cv2
+import numpy as np
+from mxnet.io import DataBatch
+import boto3
 
-capture = cv2.VideoCapture('rtsp://root:asucic2020@192.168.0.16:554/live.sdp')
+
+
+
+capture = cv2.VideoCapture('rtsp://root:asucic2020@192.168.0.17/live.sdp')
 img_counter=0
-frame_rate = 5
+frame_rate = 8
 prev = 0
 while True:
     time_elapsed = time.time() - prev

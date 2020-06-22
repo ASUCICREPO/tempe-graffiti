@@ -8,6 +8,11 @@ import json
 import base64
 
 from botocore.exceptions import ClientError
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+from bs4 import BeautifulSoup
 
 s3_client = boto3.client('s3')
 # s3_resource = boto3.resource('s3')
@@ -15,7 +20,7 @@ bucket = "report-graffiti"
 
 datetoday = datetime.date.today()
 fmt_date = datetoday.strftime('%Y/%m/%d')
-graffiti_dir = os.path.expanduser("~/graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' # 
+graffiti_dir = os.path.expanduser("~\\Projects\\tempe-graffiti\\graffiti") # 'C://cic//tempe-graffiti//sagemaker-graffiti-images//testinference' # 
 
 logfile = 'logs/rabbit-{}.log'.format(fmt_date.replace('/','-'))
 logging.basicConfig(filename=logfile,level=logging.INFO)
@@ -104,8 +109,22 @@ def make_connection():
 
 connected = False
 
-def get_geolocation():
-    return "33.4255104","-111.9400054" # replace with geolocation logic
+def get_geolocation(html):
+    soup = BeautifulSoup(html)
+    latitude=soup.find(id="gpsStatusLatitude").getText()
+    longditude=soup.find(id="gpsStatusLongitude").getText()
+    print(latitude)
+    print(longditude)
+    print("------------------------------")
+
+    return latitude+"",longditude+"" # replace with geolocation logic
+
+browser = webdriver.Chrome(executable_path=r"C:\Users\cic\Projects\tempe-graffiti\chromedriver.exe")
+browser.get('http://192.168.1.1/gps/') 
+sleep(3)
+password = browser.find_element_by_name("inputPassword")
+password.send_keys("3dfb460d")      
+browser.find_element_by_id("loginSubmit").click()
 
 while True:
     if not connected:
@@ -117,13 +136,14 @@ while True:
     try:
         images = os.listdir(graffiti_dir)
         if images:
+            print("PUSHING")
             for image in images:
                 key = fmt_date+'/'+image
                 filename = os.path.join(graffiti_dir, image)
                 resp = upload_graffiti(filename, key)
                 if resp:
                     image_s3_url = ("https://{0}.s3.amazonaws.com/{1}".format(bucket,key)).replace(' ','+')
-                    lon,lat = get_geolocation()
+                    lon,lat = get_geolocation(browser.page_source)
                     payload = { "image": image_s3_url,
                                 "geolocation": ','.join([lon,lat]) 
                                 }
