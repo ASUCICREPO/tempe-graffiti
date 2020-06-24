@@ -13,9 +13,9 @@ import boto3
 
 
 
-capture = cv2.VideoCapture('rtsp://root:asucic2020@192.168.0.17/live.sdp')
+capture = cv2.VideoCapture('rtsp://root:asucic2020@169.254.172.31/live.sdp')
 img_counter=0
-frame_rate = 8
+frame_rate = 5
 prev = 0
 while True:
     time_elapsed = time.time() - prev
